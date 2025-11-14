@@ -1,0 +1,318 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowLeft,
+  FileText,
+  Loader2,
+  Brain,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+} from "lucide-react";
+import { toast } from "sonner";
+import { mockDocuments } from "@/utils/mockDocuments";
+import AppLayout from "@/layouts/AppLayout";
+
+const DocumentDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [document, setDocument] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    loadDocument();
+  }, [id]);
+
+  const loadDocument = async () => {
+    if (!id) return;
+
+    try {
+      const doc = await mockDocuments.getDocumentById(id);
+      if (!doc) {
+        toast.error("Document not found");
+        navigate("/documents");
+        return;
+      }
+      setDocument(doc);
+    } catch (error) {
+      toast.error("Failed to load document");
+      navigate("/documents");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!id) return;
+
+    setIsAnalyzing(true);
+    try {
+      const result = await mockDocuments.analyzeDocument(id);
+      toast.success(`Analysis complete! Risk level: ${result.risk}`);
+      loadDocument();
+    } catch (error) {
+      toast.error("Analysis failed. Please try again.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk.toLowerCase()) {
+      case "high":
+        return "bg-destructive text-destructive-foreground";
+      case "medium":
+        return "bg-warning text-warning-foreground";
+      case "low":
+        return "bg-success text-success-foreground";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getRiskIcon = (risk: string) => {
+    switch (risk.toLowerCase()) {
+      case "high":
+        return <AlertTriangle className="w-5 h-5" />;
+      case "medium":
+        return <Info className="w-5 h-5" />;
+      case "low":
+        return <CheckCircle2 className="w-5 h-5" />;
+      default:
+        return <FileText className="w-5 h-5" />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!document) {
+    return null;
+  }
+
+  return (
+    <AppLayout>
+      <div className="space-y-6 max-w-4xl">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/documents")}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+        </div>
+
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {document.title}
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {document.fileName} • Uploaded {document.uploadedAt}
+              </p>
+            </div>
+          </div>
+          <Badge className={getRiskColor(document.risk)} variant="outline">
+            <span className="flex items-center gap-2">
+              {getRiskIcon(document.risk)}
+              {document.risk} Risk
+            </span>
+          </Badge>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Document Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  File Name
+                </p>
+                <p className="text-foreground mt-1">{document.fileName}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Upload Date
+                </p>
+                <p className="text-foreground mt-1">{document.uploadedAt}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Status
+                </p>
+                <p className="text-foreground mt-1 capitalize">
+                  {document.status}
+                </p>
+              </div>
+              {document.analyzedAt && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Analyzed
+                  </p>
+                  <p className="text-foreground mt-1">{document.analyzedAt}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Extracted Content</CardTitle>
+            <CardDescription>Preview of document text</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                This Non-Disclosure Agreement ("Agreement") is entered into as
+                of [Date] by and between [Party A] and [Party B]. WHEREAS, the
+                parties wish to explore a business opportunity of mutual
+                interest and benefit; WHEREAS, in connection with such
+                discussions, it may be necessary for each party to disclose
+                certain confidential information to the other party; NOW,
+                THEREFORE, in consideration of the mutual covenants and
+                agreements contained herein, the parties agree as follows: 1.
+                Definition of Confidential Information "Confidential
+                Information" means any information disclosed by one party to the
+                other, either directly or indirectly, in writing, orally, or by
+                inspection of tangible objects... 2. Non-Disclosure and Non-Use
+                Obligations Each party agrees to hold the other party's
+                Confidential Information in strict confidence and not to
+                disclose such information to third parties...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Analysis</CardTitle>
+            <CardDescription>
+              {document.status === "pending"
+                ? "Run AI analysis to detect potential risks and concerns"
+                : "AI-powered risk assessment results"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {document.status === "pending" ? (
+              <div className="text-center py-8">
+                <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground mb-4">
+                  This document hasn't been analyzed yet
+                </p>
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
+                  className="gap-2"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="w-4 h-4" />
+                      Analyze Document
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-12 h-12 rounded-lg ${getRiskColor(
+                      document.risk
+                    )} flex items-center justify-center`}
+                  >
+                    {getRiskIcon(document.risk)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      {document.risk} Risk Level Detected
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Analyzed on {document.analyzedAt}
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <h4 className="font-medium text-foreground">Key Findings:</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Standard confidentiality clauses detected</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Non-compete provisions require review</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>Termination conditions are clearly defined</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => navigate(`/documents/${id}/analysis`)}
+                    className="gap-2 flex-1"
+                  >
+                    <FileText className="w-4 h-4" />
+                    View Full Analysis
+                  </Button>
+                  <Button
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Brain className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default DocumentDetail;
