@@ -1,5 +1,6 @@
 import axios from "axios";
 import { USE_MOCK_API, API_BASE_URL } from "../utils/config";
+import { authAPI } from "../api/auth";
 
 // Create axios instance
 const api = axios.create({
@@ -193,17 +194,42 @@ const mockApi = {
 
 // API wrapper that switches between mock and real API
 export const authApi = {
-  login: (credentials) => {
+  login: async (credentials) => {
     if (USE_MOCK_API) {
       return mockApi.login(credentials);
     }
-    return api.post("/auth/login/", credentials);
+    // Use Django backend
+    const result = await authAPI.login(credentials);
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    // Transform Django response to match expected format
+    return {
+      data: {
+        user: result.data.user,
+        token: result.data.access, // access token
+        refresh: result.data.refresh, // refresh token
+      },
+    };
   },
-  signup: (userData) => {
+
+  signup: async (userData) => {
     if (USE_MOCK_API) {
       return mockApi.signup(userData);
     }
-    return api.post("/auth/signup/", userData);
+    // Use Django backend
+    const result = await authAPI.register(userData);
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    // Transform Django response to match expected format
+    return {
+      data: {
+        user: result.data.user,
+        token: result.data.access, // access token
+        refresh: result.data.refresh, // refresh token
+      },
+    };
   },
 };
 
