@@ -12,14 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { mockDocuments } from "@/utils/mockDocuments";
+import { useDocuments } from "@/hooks/useDocuments";
 import AppLayout from "@/layouts/AppLayout";
 
 const UploadDocument = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const { uploadDocument, isUploading } = useDocuments();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -40,23 +40,15 @@ const UploadDocument = () => {
       return;
     }
 
-    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", title.trim());
 
-    try {
-      await mockDocuments.addDocument({
-        title: title.trim(),
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-      });
-
-      toast.success("Document uploaded successfully!");
-      navigate("/documents");
-    } catch (error) {
-      toast.error("Upload failed. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
+    uploadDocument(formData, {
+      onSuccess: () => {
+        navigate("/documents");
+      },
+    });
   };
 
   return (

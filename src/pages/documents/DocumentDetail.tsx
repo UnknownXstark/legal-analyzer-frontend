@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -19,52 +18,26 @@ import {
   CheckCircle2,
   Info,
 } from "lucide-react";
-import { toast } from "sonner";
-import { mockDocuments } from "@/utils/mockDocuments";
+import { useDocument } from "@/hooks/useDocuments";
+import { useDocuments } from "@/hooks/useDocuments";
 import AppLayout from "@/layouts/AppLayout";
 
 const DocumentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [document, setDocument] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { document, isLoading } = useDocument(id);
+  const { analyzeDocument, isAnalyzing, generateReport, isGeneratingReport } =
+    useDocuments();
 
-  useEffect(() => {
-    loadDocument();
-  }, [id]);
-
-  const loadDocument = async () => {
-    if (!id) return;
-
-    try {
-      const doc = await mockDocuments.getDocumentById(id);
-      if (!doc) {
-        toast.error("Document not found");
-        navigate("/documents");
-        return;
-      }
-      setDocument(doc);
-    } catch (error) {
-      toast.error("Failed to load document");
-      navigate("/documents");
-    } finally {
-      setIsLoading(false);
+  const handleAnalyze = () => {
+    if (id) {
+      analyzeDocument(id);
     }
   };
 
-  const handleAnalyze = async () => {
-    if (!id) return;
-
-    setIsAnalyzing(true);
-    try {
-      const result = await mockDocuments.analyzeDocument(id);
-      toast.success(`Analysis complete! Risk level: ${result.risk}`);
-      loadDocument();
-    } catch (error) {
-      toast.error("Analysis failed. Please try again.");
-    } finally {
-      setIsAnalyzing(false);
+  const handleGenerateReport = () => {
+    if (id) {
+      generateReport(id);
     }
   };
 
@@ -227,23 +200,25 @@ const DocumentDetail = () => {
                 <p className="text-muted-foreground mb-4">
                   This document hasn't been analyzed yet
                 </p>
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing}
-                  className="gap-2"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="w-4 h-4" />
-                      Analyze Document
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing}
+                    className="gap-2"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="w-4 h-4" />
+                        Analyze Document
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -303,6 +278,18 @@ const DocumentDetail = () => {
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Brain className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleGenerateReport}
+                    disabled={isGeneratingReport}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    {isGeneratingReport ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
                     )}
                   </Button>
                 </div>

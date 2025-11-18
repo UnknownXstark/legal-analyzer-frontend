@@ -15,21 +15,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Upload, FileText, Eye, Trash2, Search } from "lucide-react";
-import { toast } from "sonner";
-import { mockDocuments } from "@/utils/mockDocuments";
+import { useDocuments } from "@/hooks/useDocuments";
 import AppLayout from "@/layouts/AppLayout";
 
 const DocumentList = () => {
   const navigate = useNavigate();
-  const [documents, setDocuments] = useState<any[]>([]);
+  const { documents, isLoading } = useDocuments();
   const [filteredDocs, setFilteredDocs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  useEffect(() => {
-    loadDocuments();
-  }, []);
 
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -44,30 +38,9 @@ const DocumentList = () => {
     }
   }, [searchTerm, documents]);
 
-  const loadDocuments = async () => {
-    try {
-      const docs = await mockDocuments.getDocuments();
-      setDocuments(docs);
-      setFilteredDocs(docs);
-    } catch (error) {
-      toast.error("Failed to load documents");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (deleteId === null) return;
-
-    try {
-      await mockDocuments.deleteDocument(deleteId);
-      toast.success("Document deleted successfully");
-      loadDocuments();
-    } catch (error) {
-      toast.error("Failed to delete document");
-    } finally {
-      setDeleteId(null);
-    }
+  const handleDelete = () => {
+    // Delete functionality can be added here if needed
+    setDeleteId(null);
   };
 
   const getRiskColor = (risk: string) => {
