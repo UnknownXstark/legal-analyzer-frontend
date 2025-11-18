@@ -34,13 +34,31 @@ const Login = () => {
 
     try {
       const response = await authApi.login(formData);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.token);
+      const { user, token, refresh } = response.data;
+
+      // Store tokens and user data
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+      localStorage.setItem("access_token", token);
+      if (refresh) {
+        localStorage.setItem("refresh_token", refresh);
+      }
+
       toast.success("Login successful!");
-      navigate("/dashboard");
+
+      // Redirect based on role
+      const role = user.role || "individual";
+      if (role === "admin") {
+        navigate("/dashboard");
+      } else if (role === "lawyer") {
+        navigate("/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast.error(
         error.response?.data?.message ||
+          error.message ||
           "Login failed. Please check your credentials."
       );
     } finally {
