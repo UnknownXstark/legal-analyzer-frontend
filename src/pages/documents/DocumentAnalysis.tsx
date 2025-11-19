@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
+import { documentsAPI } from "@/api/documents";
 import {
   Card,
   CardContent,
@@ -62,14 +63,22 @@ const DocumentAnalysis = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
       try {
-        const doc = await mockDocuments.getDocumentById(id!);
-        const analysisData = await mockDocuments.getAnalysis(id!);
+        const { data: doc } = await documentsAPI.getById(id!);
+        const { data: analysisData } = await documentsAPI.analyze(id!); // OR getReport logic
 
         setDocument(doc);
-        setAnalysis(analysisData);
+
+        setAnalysis({
+          clauses: analysisData.clauses || [],
+          overallRisk: analysisData.risk || "Unknown",
+          summary: analysisData.summary || "No summary available",
+          extractedText: analysisData.extractedText || "",
+          analyzedAt: analysisData.analyzedAt || new Date().toISOString(),
+        });
       } catch (error) {
-        console.error("Error fetching analysis:", error);
+        console.error("Error loading analysis:", error);
       } finally {
         setLoading(false);
       }
