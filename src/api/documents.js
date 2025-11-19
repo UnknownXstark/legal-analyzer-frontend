@@ -131,44 +131,56 @@ export const documentsAPI = {
    * @param {number} id - Document ID
    * @returns {Promise}
    */
-  analyze: async (id) => {
-    if (USE_MOCK_API) {
-      // Mock mode
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const docIndex = mockDocuments.findIndex(d => d.id === parseInt(id));
-      if (docIndex === -1) {
-        return { data: null, error: 'Document not found' };
-      }
+ analyze: async (id) => {
+  if (USE_MOCK_API) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const risks = ['Low', 'Medium', 'High'];
-      const risk = risks[Math.floor(Math.random() * risks.length)];
-
-      mockDocuments[docIndex] = {
-        ...mockDocuments[docIndex],
-        status: 'analyzed',
-        risk,
-        analyzedAt: new Date().toISOString(),
-        analysis: {
-          clauses_found: Math.floor(Math.random() * 20) + 5,
-          risk_score: Math.random() * 100,
-          summary: 'AI analysis completed successfully.',
-        },
-      };
-
-      return { data: mockDocuments[docIndex], error: null };
+    const docIndex = mockDocuments.findIndex(d => d.id === parseInt(id));
+    if (docIndex === -1) {
+      return { data: null, error: 'Document not found' };
     }
 
-    try {
-      const response = await apiClient.post(`/api/documents/${id}/analyze/`);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { 
-        data: null, 
-        error: error.response?.data?.message || error.message || 'Analysis failed' 
-      };
-    }
-  },
+    const risks = ['Low', 'Medium', 'High'];
+    const risk = risks[Math.floor(Math.random() * risks.length)];
+
+    mockDocuments[docIndex] = {
+      ...mockDocuments[docIndex],
+      status: 'analyzed',
+      risk,
+      analyzedAt: new Date().toISOString(),
+    };
+
+    return { data: mockDocuments[docIndex], error: null };
+  }
+
+  try {
+    const res = await apiClient.post(`/api/documents/${id}/analyze/`);
+    const doc = res.data;
+
+    // 🔥 Normalize backend → frontend names
+    const mapped = {
+      id: doc.id,
+      title: doc.title,
+      fileName: doc.file,
+      uploadedAt: doc.uploaded_at,
+      risk: doc.risk_score || "unknown",
+      status: "analyzed",
+      analyzedAt: new Date().toISOString(),
+      extractedText: doc.extracted_text || "",
+      clauses: doc.clauses_found || {},
+      summary: doc.summary || ""
+    };
+
+    return { data: mapped, error: null };
+
+  } catch (error) {
+    return {
+      data: null,
+      error: error.response?.data || 'Error analyzing document',
+    };
+  }
+},
+
 
   /**
    * Generate report for document

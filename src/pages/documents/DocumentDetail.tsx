@@ -110,7 +110,10 @@ const DocumentDetail = () => {
               </p>
             </div>
           </div>
-          <Badge className={getRiskColor(document.risk ?? "unknown")} variant="outline">
+          <Badge
+            className={getRiskColor(document.risk ?? "unknown")}
+            variant="outline"
+          >
             <span className="flex items-center gap-2">
               {getRiskIcon(document.risk)}
               {document.risk} Risk
@@ -164,21 +167,10 @@ const DocumentDetail = () => {
           <CardContent>
             <div className="p-4 bg-muted/30 rounded-lg border border-border">
               <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                This Non-Disclosure Agreement ("Agreement") is entered into as
-                of [Date] by and between [Party A] and [Party B]. WHEREAS, the
-                parties wish to explore a business opportunity of mutual
-                interest and benefit; WHEREAS, in connection with such
-                discussions, it may be necessary for each party to disclose
-                certain confidential information to the other party; NOW,
-                THEREFORE, in consideration of the mutual covenants and
-                agreements contained herein, the parties agree as follows: 1.
-                Definition of Confidential Information "Confidential
-                Information" means any information disclosed by one party to the
-                other, either directly or indirectly, in writing, orally, or by
-                inspection of tangible objects... 2. Non-Disclosure and Non-Use
-                Obligations Each party agrees to hold the other party's
-                Confidential Information in strict confidence and not to
-                disclose such information to third parties...
+                {document.extractedText &&
+                document.extractedText.trim().length > 0
+                  ? document.extractedText
+                  : "No extracted text available for this document."}
               </p>
             </div>
           </CardContent>
