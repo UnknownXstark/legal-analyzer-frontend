@@ -61,22 +61,34 @@ export const documentsAPI = {
    * @returns {Promise}
    */
   getAll: async () => {
-    if (USE_MOCK_API) {
-      // Mock mode
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { data: mockDocuments, error: null };
-    }
+  if (USE_MOCK_API) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { data: mockDocuments, error: null };
+  }
 
-    try {
-      const response = await apiClient.get('/api/documents/');
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { 
-        data: null, 
-        error: error.response?.data?.message || error.message || 'Failed to fetch documents' 
-      };
-    }
-  },
+  try {
+    const response = await apiClient.get('/api/documents/');
+
+    // 🔥 Normalize backend fields for frontend compatibility
+    const mapped = response.data.map((doc) => ({
+      id: doc.id,
+      title: doc.title,
+      fileName: doc.file,                             // backend gives full path
+      uploadedAt: doc.uploaded_at,
+      risk: doc.risk_score || "unknown",              // fallback for new docs
+      status: doc.status || "pending",
+      analyzedAt: doc.analyzed_at || null,
+      extractedText: doc.extracted_text || "",        // in case you add later
+    }));
+
+    return { data: mapped, error: null };
+  } catch (error) {
+    return { 
+      data: null, 
+      error: error.response?.data?.message || error.message || 'Failed to fetch documents' 
+    };
+  }
+},
 
   /**
    * Get document details
