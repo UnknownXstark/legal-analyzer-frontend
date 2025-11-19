@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/Dashboard";
@@ -29,16 +30,26 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/documents" element={<DocumentList />} />
-          <Route path="/documents/upload" element={<UploadDocument />} />
-          <Route path="/documents/:id/analysis" element={<DocumentAnalysis />} />
-          <Route path="/documents/:id" element={<DocumentDetail />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/reports/:id" element={<ReportDetail />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/notifications/logs" element={<ActivityLogs />} />
-          <Route path="/settings" element={<Settings />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/individual-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/lawyer-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/admin-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          
+          <Route path="/documents" element={<ProtectedRoute><DocumentList /></ProtectedRoute>} />
+          <Route path="/documents/upload" element={<ProtectedRoute><UploadDocument /></ProtectedRoute>} />
+          <Route path="/documents/:id/analysis" element={<ProtectedRoute><DocumentAnalysis /></ProtectedRoute>} />
+          <Route path="/documents/:id" element={<ProtectedRoute><DocumentDetail /></ProtectedRoute>} />
+          
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/reports/:id" element={<ProtectedRoute><ReportDetail /></ProtectedRoute>} />
+          
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/notifications/logs" element={<ProtectedRoute><ActivityLogs /></ProtectedRoute>} />
+          
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
