@@ -33,33 +33,36 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login(formData);
-      const { user, token, refresh } = response.data;
+      // Convert email → username (because Django requires username)
+      const payload = {
+        username: formData.email,
+        password: formData.password,
+      };
 
-      // Store tokens and user data
+      const response = await authApi.login(payload);
+
+      const user = response.data.user;
+      const access = response.data.access || response.data.token || null;
+      const refresh = response.data.refresh || null;
+
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token);
-      localStorage.setItem("access_token", token);
+
+      if (access) {
+        localStorage.setItem("access_token", access);
+        localStorage.setItem("token", access);
+      }
+
       if (refresh) {
         localStorage.setItem("refresh_token", refresh);
       }
 
       toast.success("Login successful!");
-
-      // Redirect based on role
-      const role = user.role || "individual";
-      if (role === "admin") {
-        navigate("/dashboard");
-      } else if (role === "lawyer") {
-        navigate("/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Login failed. Please check your credentials."
+        error.response?.data?.detail ||
+          error.response?.data?.message ||
+          "Login failed. Check your credentials."
       );
     } finally {
       setIsLoading(false);
@@ -71,18 +74,15 @@ const Login = () => {
       <Card>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardDescription>Enter your credentials</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label>Email</Label>
               <Input
-                id="email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="johndoe@example.com"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -90,10 +90,10 @@ const Login = () => {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label>Password</Label>
               <Input
-                id="password"
                 type="password"
                 placeholder="••••••••"
                 value={formData.password}
@@ -103,23 +103,20 @@ const Login = () => {
                 disabled={isLoading}
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
+
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <button
               onClick={() => navigate("/signup")}
               className="text-primary hover:underline"
             >
               Sign up
             </button>
-          </div>
-          <div className="mt-4 p-3 bg-muted rounded-lg text-xs text-muted-foreground">
-            <p className="font-medium mb-1">Demo credentials:</p>
-            <p>Email: admin@example.com</p>
-            <p>Password: admin123</p>
           </div>
         </CardContent>
       </Card>

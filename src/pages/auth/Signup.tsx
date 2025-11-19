@@ -23,13 +23,21 @@ import AuthLayout from "@/layouts/AuthLayout";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<{
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    role: "individual" | "lawyer";
+  }>({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
     role: "individual",
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,35 +66,42 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const { confirmPassword, ...signupData } = formData;
-      const response = await authApi.signup(signupData);
-      const { user, token, refresh } = response.data;
+      const signupData = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      };
 
-      // Store tokens and user data
+      const response = await authApi.signup(signupData);
+
+      const user = response.data.user;
+      const access = response.data.access || response.data.token || null;
+      const refresh = response.data.refresh || null;
+
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token);
-      localStorage.setItem("access_token", token);
+
+      if (access) {
+        localStorage.setItem("access_token", access);
+        localStorage.setItem("token", access);
+      }
+
       if (refresh) {
         localStorage.setItem("refresh_token", refresh);
       }
 
       toast.success("Account created successfully!");
 
-      // Redirect based on role
-      const role = user.role || "individual";
-      if (role === "admin") {
-        navigate("/dashboard");
-      } else if (role === "lawyer") {
-        navigate("/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (error: any) {
-      toast.error(
+      const detail =
+        error.response?.data?.detail ||
         error.response?.data?.message ||
-          error.message ||
-          "Signup failed. Please try again."
-      );
+        JSON.stringify(error.response?.data) ||
+        error.message ||
+        "Signup failed";
+
+      toast.error(detail);
     } finally {
       setIsLoading(false);
     }
@@ -96,21 +111,15 @@ const Signup = () => {
     <AuthLayout>
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
-          </CardTitle>
-          <CardDescription>
-            Enter your information to get started
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardDescription>Enter your information to get started</CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label>Username</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="johndoe"
                 value={formData.username}
                 onChange={(e) =>
                   setFormData({ ...formData, username: e.target.value })
@@ -118,12 +127,11 @@ const Signup = () => {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label>Email</Label>
               <Input
-                id="email"
                 type="email"
-                placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -131,30 +139,34 @@ const Signup = () => {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="role">Account Type</Label>
+              <Label>Account Type</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, role: value })
+                  setFormData({
+                    ...formData,
+                    role: value as "individual" | "lawyer",
+                  })
                 }
                 disabled={isLoading}
               >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select account type" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="individual">Individual</SelectItem>
                   <SelectItem value="lawyer">Lawyer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label>Password</Label>
               <Input
-                id="password"
                 type="password"
-                placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -162,23 +174,27 @@ const Signup = () => {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label>Confirm Password</Label>
               <Input
-                id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
+                  setFormData({
+                    ...formData,
+                    confirmPassword: e.target.value,
+                  })
                 }
                 disabled={isLoading}
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
+
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <button
