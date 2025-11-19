@@ -110,7 +110,7 @@ const DocumentDetail = () => {
               </p>
             </div>
           </div>
-          <Badge className={getRiskColor(document.risk)} variant="outline">
+          <Badge className={getRiskColor(document.risk ?? "unknown")} variant="outline">
             <span className="flex items-center gap-2">
               {getRiskIcon(document.risk)}
               {document.risk} Risk

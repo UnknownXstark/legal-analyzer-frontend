@@ -96,28 +96,35 @@ export const documentsAPI = {
    * @returns {Promise}
    */
   getById: async (id) => {
-    if (USE_MOCK_API) {
-      // Mock mode
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const doc = mockDocuments.find(d => d.id === parseInt(id));
-      
-      if (!doc) {
-        return { data: null, error: 'Document not found' };
-      }
-      
-      return { data: doc, error: null };
-    }
+  try {
+    const response = await apiClient.get(`/api/documents/${id}/`);
 
-    try {
-      const response = await apiClient.get(`/api/documents/${id}/`);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { 
-        data: null, 
-        error: error.response?.data?.message || error.message || 'Failed to fetch document' 
-      };
-    }
-  },
+    const doc = response.data;
+
+    // 🔥 Normalize backend fields for the detail page
+    const mapped = {
+      id: doc.id,
+      title: doc.title,
+      fileName: doc.file,
+      uploadedAt: doc.uploaded_at,
+      risk: doc.risk_score || "unknown",
+      status: doc.status || "pending",
+      analyzedAt: doc.analyzed_at || null,
+      extractedText: doc.extracted_text || "",
+      clauses: doc.clauses_found || {},
+      summary: doc.summary || ""
+    };
+
+    return { data: mapped, error: null };
+
+  } catch (error) {
+    return {
+      data: null,
+      error: error.response?.data?.message || error.message
+    };
+  }
+},
+
 
   /**
    * Run AI analysis on document
