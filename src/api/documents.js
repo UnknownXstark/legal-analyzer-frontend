@@ -219,4 +219,29 @@ export const documentsAPI = {
       };
     }
   },
+
+  /**
+   * Delete a document
+   * @param {number} id - Document ID
+   * @returns {Promise}
+   */
+  deleteDocument: async (id) => {
+    if (USE_MOCK_API) {
+      mockDocuments = mockDocuments.filter((d) => d.id !== id);
+      return { data: true, error: null };
+    }
+
+    try {
+      const res = await apiClient.delete(`/api/documents/${id}/delete/`);
+      return { data: res.data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to delete document",
+      };
+    }
+  },
 };

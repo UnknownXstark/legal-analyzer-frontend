@@ -17,6 +17,8 @@ import {
 import { Upload, FileText, Eye, Trash2, Search } from "lucide-react";
 import { useDocuments } from "@/hooks/useDocuments";
 import AppLayout from "@/layouts/AppLayout";
+import { documentsAPI } from "@/api/documents";
+import { toast } from "sonner";
 
 const DocumentList = () => {
   const navigate = useNavigate();
@@ -38,9 +40,26 @@ const DocumentList = () => {
     }
   }, [searchTerm, documents]);
 
-  const handleDelete = () => {
-    // Delete functionality can be added here if needed
-    setDeleteId(null);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      const { data, error } = await documentsAPI.deleteDocument(deleteId);
+
+      if (error) {
+        toast.error(error);
+      } else {
+        toast.success("Document deleted successfully");
+
+        // Remove deleted document from UI
+        const updated = documents.filter((doc) => doc.id !== deleteId);
+        setFilteredDocs(updated);
+      }
+    } catch (err) {
+      toast.error("Failed to delete document");
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const getRiskColor = (risk: string) => {
@@ -170,7 +189,9 @@ const DocumentList = () => {
 
       <AlertDialog
         open={deleteId !== null}
-        onOpenChange={() => setDeleteId(null)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteId(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
