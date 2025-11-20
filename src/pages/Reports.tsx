@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Eye, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-import { mockReports } from "@/utils/mockReports";
 import AppLayout from "@/layouts/AppLayout";
+import { reportsApi } from "@/api/reports";
 
 const Reports = () => {
   const navigate = useNavigate();
@@ -19,8 +19,10 @@ const Reports = () => {
 
   const loadReports = async () => {
     try {
-      const data = await mockReports.getReports();
-      setReports(data);
+      const data = await reportsApi.getReports();
+      setReports(
+        data.filter((doc: any) => doc.status === "analyzed") // only show analyzed docs
+      );
     } catch (error) {
       toast.error("Failed to load reports");
     } finally {
@@ -28,7 +30,7 @@ const Reports = () => {
     }
   };
 
-  const getRiskColor = (risk: string) => {
+  const getRiskColor = (risk: string | null) => {
     switch (risk) {
       case "Low":
         return "bg-green-500/10 text-green-700 border-green-200";
@@ -74,9 +76,7 @@ const Reports = () => {
             ) : reports.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-foreground font-medium">
-                  No reports available
-                </p>
+                <p className="text-foreground font-medium">No reports available</p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Analyze your documents to generate reports
                 </p>
@@ -94,16 +94,20 @@ const Reports = () => {
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-foreground">
-                          {report.documentTitle}
+                          {report.title}
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Generated: {report.date}
+                          Generated:{" "}
+                          {report.analyzed_at
+                            ? new Date(report.analyzed_at).toLocaleString()
+                            : "Not analyzed"}
                         </p>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-3">
-                      <Badge className={getRiskColor(report.overallRisk)}>
-                        {report.overallRisk} Risk
+                      <Badge className={getRiskColor(report.risk_score)}>
+                        {report.risk_score || "N/A"} Risk
                       </Badge>
                       <Button
                         variant="outline"
