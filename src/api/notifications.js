@@ -1,31 +1,27 @@
-import apiClient from "@/api/axios";
-
-// Convert backend → frontend format
-const mapNotification = (n) => ({
-  id: n.id,
-  message: n.message,
-  createdAt: n.created_at,
-  isRead: n.is_read,
-});
+import apiClient from "./axios";
 
 export const notificationsApi = {
+  // Get all notifications
   getAll: async () => {
     const res = await apiClient.get("/api/notifications/");
-    return res.data.map(mapNotification);
+    return res.data;
   },
 
+  // Mark one notification as read
   markRead: async (id) => {
-    await apiClient.post(`/api/notifications/${id}/read/`);
-    return true;
+    const res = await apiClient.patch(`/api/notifications/${id}/read/`);
+    return res.data;
   },
 
+  // Mark all notifications as read
   markAllRead: async () => {
-    await apiClient.post(`/api/notifications/mark-all/`);
-    return true;
+    const res = await apiClient.patch("/api/notifications/mark-all/");
+    return res.data;
   },
 
+  // Delete one notification
   delete: async (id) => {
-    await apiClient.delete(`/api/notifications/${id}/delete/`);
-    return true;
+    const res = await apiClient.delete(`/api/notifications/${id}/delete/`);
+    return res.data;
   },
 };

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 import AppLayout from "@/layouts/AppLayout";
-import { notificationsApi } from "@/api/notifications";
+import { activityLogsApi } from "@/api/activityLogs";
 import { formatTimestamp } from "@/utils/dateFormat";
 
 const ActivityLogs = () => {
@@ -24,7 +24,7 @@ const ActivityLogs = () => {
   const loadLogs = async () => {
     try {
       setIsLoading(true);
-      const data = await notificationsApi.getActivityLogs();
+      const data = await activityLogsApi.getAll();
       setLogs(data);
     } catch (error) {
       toast.error("Failed to load activity logs");
@@ -38,7 +38,7 @@ const ActivityLogs = () => {
       setActiveFilter(type);
       setIsLoading(true);
 
-      const data = await notificationsApi.getActivityLogs(type);
+      const data = await activityLogsApi.filter(type);
       setLogs(data);
     } catch (error) {
       toast.error("Failed to filter logs");

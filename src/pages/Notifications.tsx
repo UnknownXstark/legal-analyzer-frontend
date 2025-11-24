@@ -5,11 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, CheckCircle, AlertCircle, Info, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
-import AppLayout from "@/layouts/AppLayout";
-import { useNavigate } from "react-router-dom";
-
 import { notificationsApi } from "@/api/notifications";
 import { formatTimeAgo } from "@/utils/dateFormat";
+import AppLayout from "@/layouts/AppLayout";
+import { useNavigate } from "react-router-dom";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -22,7 +21,7 @@ const Notifications = () => {
 
   const loadNotifications = async () => {
     try {
-      const data = await notificationsApi.getNotifications();
+      const data = await notificationsApi.getAll();
       setNotifications(data);
     } catch (error) {
       toast.error("Failed to load notifications");
@@ -33,34 +32,34 @@ const Notifications = () => {
 
   const handleMarkRead = async (id: number) => {
     try {
-      await notificationsApi.markAsRead(id);
+      await notificationsApi.markRead(id);
       setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+        notifications.map((n) =>
+          n.id === id ? { ...n, is_read: true } : n
+        )
       );
-      toast.success("Notification marked as read");
     } catch (error) {
-      toast.error("Failed to update notification");
+      toast.error("Error marking notification");
     }
   };
 
   const handleMarkAllRead = async () => {
     try {
-      await notificationsApi.markAllAsRead();
+      await notificationsApi.markAllRead();
       setNotifications(notifications.map((n) => ({ ...n, is_read: true })));
-      toast.success("All notifications marked as read");
     } catch (error) {
-      toast.error("Failed to update notifications");
+      toast.error("Error marking notifications");
     }
   };
 
   const getIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-success" />;
       case "warning":
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+        return <AlertCircle className="w-5 h-5 text-warning" />;
       default:
-        return <Info className="w-5 h-5 text-blue-500" />;
+        return <Info className="w-5 h-5 text-primary" />;
     }
   };
 
@@ -86,21 +85,13 @@ const Notifications = () => {
             <CardTitle>
               All Notifications
               {unreadCount > 0 && (
-                <Badge variant="default" className="ml-3">
-                  {unreadCount} unread
-                </Badge>
+                <Badge variant="default" className="ml-3">{unreadCount} unread</Badge>
               )}
             </CardTitle>
 
             {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleMarkAllRead}
-                className="gap-2"
-              >
-                <CheckCheck className="w-4 h-4" />
-                Mark all as read
+              <Button variant="ghost" size="sm" onClick={handleMarkAllRead}>
+                <CheckCheck className="w-4 h-4" /> Mark all as read
               </Button>
             )}
           </CardHeader>
@@ -108,70 +99,55 @@ const Notifications = () => {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
+                {[1,2,3].map(i => (
                   <div key={i} className="flex items-center gap-4 p-4">
-                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <Skeleton className="w-10 h-10 rounded-lg"/>
                     <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/4" />
+                      <Skeleton className="h-4 w-3/4"/>
+                      <Skeleton className="h-3 w-1/4"/>
                     </div>
                   </div>
                 ))}
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-12">
-                <Bell className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No notifications yet</p>
+                <Bell className="w-12 h-12 mx-auto text-muted-foreground mb-4"/>
+                <p className="text-muted-foreground">No notifications</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {notifications.map((notification) => (
+                {notifications.map((n) => (
                   <div
-                    key={notification.id}
-                    className={`flex items-start justify-between p-4 rounded-lg border transition-all hover:shadow-md cursor-pointer ${
-                      !notification.is_read
-                        ? "border-primary/30 bg-primary/5"
-                        : "border-border bg-background"
-                    }`}
-                    onClick={() =>
-                      !notification.is_read && handleMarkRead(notification.id)
-                    }
+                    key={n.id}
+                    className={`flex items-start justify-between p-4 rounded-lg border
+                        ${!n.is_read ? "border-primary/40 bg-primary/5" : "border-border bg-background"}
+                        hover:shadow-md transition-all cursor-pointer`}
+                    onClick={() => !n.is_read && handleMarkRead(n.id)}
                   >
                     <div className="flex items-start gap-4 flex-1">
-                      {!notification.is_read && (
-                        <div className="w-2 h-2 rounded-full bg-primary mt-2 animate-pulse" />
+                      {!n.is_read && (
+                        <div className="w-2 h-2 rounded-full bg-primary mt-2 animate-pulse"/>
                       )}
 
-                      <div className="w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center flex-shrink-0">
-                        {getIcon(notification.type)}
+                      <div className="w-10 h-10 border rounded-lg flex items-center justify-center">
+                        {getIcon("info")}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm ${
-                            !notification.is_read
-                              ? "font-semibold"
-                              : "font-medium"
-                          } text-foreground`}
-                        >
-                          {notification.message}
+                        <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"}`}>
+                          {n.message}
                         </p>
-
                         <p className="text-xs text-muted-foreground mt-1">
-                          {formatTimeAgo(notification.created_at)}
+                          {formatTimeAgo(n.created_at)}
                         </p>
                       </div>
                     </div>
 
-                    {!notification.is_read && (
+                    {!n.is_read && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMarkRead(notification.id);
-                        }}
-                        className="text-xs"
+                        onClick={(e) => { e.stopPropagation(); handleMarkRead(n.id); }}
                       >
                         Mark as read
                       </Button>
@@ -182,6 +158,7 @@ const Notifications = () => {
             )}
           </CardContent>
         </Card>
+
       </div>
     </AppLayout>
   );
