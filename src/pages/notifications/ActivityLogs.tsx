@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Filter, FileUp, Settings, FileBarChart, Download, Lock } from "lucide-react";
+
+import {
+  Filter,
+  FileUp,
+  Settings,
+  FileBarChart,
+  Download,
+  Lock,
+} from "lucide-react";
+
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -59,9 +69,24 @@ const ActivityLogs = () => {
         return <Download className="w-5 h-5 text-orange-500" />;
       case "auth":
         return <Lock className="w-5 h-5 text-red-500" />;
+      case "settings":
+        return <Settings className="w-5 h-5 text-gray-500" />;
       default:
         return <Settings className="w-5 h-5 text-muted-foreground" />;
     }
+  };
+
+  const getActionBadge = (type: string) => {
+    const badges: any = {
+      upload: { variant: "default", label: "Upload" },
+      analysis: { variant: "secondary", label: "Analysis" },
+      report: { variant: "outline", label: "Report" },
+      download: { variant: "secondary", label: "Download" },
+      auth: { variant: "outline", label: "Auth" },
+      settings: { variant: "secondary", label: "Settings" },
+    };
+
+    return badges[type] || { variant: "outline", label: "Other" };
   };
 
   const filters = [
@@ -76,9 +101,12 @@ const ActivityLogs = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Activity Logs</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Activity Logs
+            </h1>
             <p className="text-muted-foreground mt-1">
               Track all system activities
             </p>
@@ -106,6 +134,7 @@ const ActivityLogs = () => {
                   variant={activeFilter === f.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleFilter(f.value)}
+                  className="transition-all"
                 >
                   {f.label}
                 </Button>
@@ -124,7 +153,10 @@ const ActivityLogs = () => {
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-4 border rounded-lg"
+                  >
                     <Skeleton className="w-10 h-10 rounded-lg" />
                     <div className="flex-1 space-y-2">
                       <Skeleton className="h-4 w-1/3" />
@@ -140,36 +172,52 @@ const ActivityLogs = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {logs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all"
-                  >
-                    {/* Icon */}
-                    <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
-                      {getActionIcon(log.type)}
-                    </div>
+                {logs.map((log) => {
+                  const badge = getActionBadge(log.type);
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">{log.action}</p>
+                  return (
+                    <div
+                      key={log.id}
+                      className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all"
+                    >
+                      {/* Icon */}
+                      <div className="w-10 h-10 rounded-lg border flex items-center justify-center">
+                        {getActionIcon(log.type)}
+                      </div>
 
-                      <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                        {Object.entries(log.details || {}).map(([key, value]) => (
-                          <div key={key}>
-                            <span className="capitalize">{key}:</span>{" "}
-                            <span className="font-medium">{String(value)}</span>
-                          </div>
-                        ))}
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-foreground">
+                            {log.action}
+                          </p>
+
+                          <Badge variant={badge.variant} className="text-xs">
+                            {badge.label}
+                          </Badge>
+                        </div>
+
+                        <div className="text-xs text-muted-foreground space-y-0.5">
+                          {Object.entries(log.details || {}).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <span className="capitalize">{key}:</span>{" "}
+                                <span className="font-medium">
+                                  {String(value)}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Timestamp */}
+                      <div className="text-sm text-muted-foreground flex-shrink-0">
+                        {formatTimestamp(log.timestamp)}
                       </div>
                     </div>
-
-                    {/* Timestamp */}
-                    <div className="text-sm text-muted-foreground flex-shrink-0">
-                      {formatTimestamp(log.timestamp)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
