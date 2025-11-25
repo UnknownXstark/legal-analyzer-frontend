@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,13 +10,35 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Users, FileText, AlertCircle, Clock } from "lucide-react";
+import { lawyerDashboardApi } from "@/api/lawyerDashboard";
+import { toast } from "sonner";
 
-interface LawyerDashboardProps {
-  data: any;
-  userName: string;
+interface LawyerData {
+  stats: {
+    totalClients: number;
+    documentsReviewed: number;
+    pendingReviews: number;
+    highRiskCases: number;
+  };
+  riskDistribution: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+  clients: {
+    id: number;
+    name: string;
+    docs: number;
+    avgRisk: string;
+    lastActive: string;
+  }[];
 }
 
-const LawyerDashboard = ({ data, userName }: LawyerDashboardProps) => {
+const LawyerDashboard = () => {
+  const [data, setData] = useState<LawyerData | null>(null);
+  const [userName, setUserName] = useState("Lawyer");
+  const [loading, setLoading] = useState(true);
+
   const getRiskColor = (risk: string) => {
     switch (risk.toLowerCase()) {
       case "low":
@@ -28,6 +51,30 @@ const LawyerDashboard = ({ data, userName }: LawyerDashboardProps) => {
         return "bg-muted text-muted-foreground";
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await lawyerDashboardApi.getAnalytics();
+        setData(res);
+        setUserName(localStorage.getItem("userName") || "Lawyer");
+      } catch (err) {
+        toast.error("Failed to load lawyer dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-muted-foreground">Loading dashboard...</div>;
+  }
+
+  if (!data) {
+    return <div className="p-6 text-destructive">Unable to load dashboard data.</div>;
+  }
 
   const stats = [
     {
@@ -101,6 +148,7 @@ const LawyerDashboard = ({ data, userName }: LawyerDashboardProps) => {
             <p className="text-xs text-muted-foreground mt-1">Documents</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -114,6 +162,7 @@ const LawyerDashboard = ({ data, userName }: LawyerDashboardProps) => {
             <p className="text-xs text-muted-foreground mt-1">Documents</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -145,7 +194,7 @@ const LawyerDashboard = ({ data, userName }: LawyerDashboardProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.clients.map((client: any) => (
+              {data.clients.map((client) => (
                 <TableRow key={client.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.docs}</TableCell>

@@ -101,7 +101,7 @@ const Dashboard = () => {
         <IndividualDashboard data={dashboardData} userName={userName} />
       )}
       {role === 'lawyer' && (
-        <LawyerDashboard data={dashboardData} userName={userName} />
+        <LawyerDashboard />
       )}
       {role === 'admin' && (
         <AdminDashboard data={dashboardData} userName={userName} />
