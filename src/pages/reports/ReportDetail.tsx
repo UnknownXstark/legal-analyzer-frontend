@@ -31,6 +31,10 @@ const ReportDetail = () => {
 
   const loadReport = async () => {
     try {
+      // 🔥 FIRST: trigger backend report generation
+      await reportsApi.generateReport(id!);
+
+      // SECOND: load updated report data
       const data = await reportsApi.getReportById(id!);
 
       if (!data) {
@@ -41,7 +45,7 @@ const ReportDetail = () => {
 
       setReport(data);
 
-      // Convert backend clauses dictionary into array format
+      // Convert backend clauses dict -> array
       const clauseArray = Object.entries(data.clauses_found || {}).map(
         ([name, value]) => ({
           name,
@@ -51,7 +55,6 @@ const ReportDetail = () => {
 
       setClauses(clauseArray);
 
-      // Compute statistics
       const compliant = clauseArray.filter((c) => c.status === "Compliant").length;
       const needsReview = clauseArray.filter((c) => c.status === "Needs Review").length;
 
@@ -59,10 +62,11 @@ const ReportDetail = () => {
         totalClauses: clauseArray.length,
         compliant,
         needsReview,
-        risky: 0, // no risky category unless you implement it backend-side
+        risky: 0,
       });
 
     } catch (error) {
+      console.error(error);
       toast.error("Failed to load report");
     } finally {
       setIsLoading(false);

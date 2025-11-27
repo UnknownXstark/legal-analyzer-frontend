@@ -17,7 +17,7 @@ export const reportsApi = {
   },
 
   generateReport: async (id) => {
-    const res = await apiClient.post("/api/documents/${id}/report/");
+    const res = await apiClient.post(`/api/documents/${id}/report/`);
     return res.data;
   },
 };
