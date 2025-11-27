@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import AppLayout from "@/layouts/AppLayout";
 import { reportsApi } from "@/api/reports";
+import { downloadDocument } from "@/api/downloads";
 
 const ReportDetail = () => {
   const { id } = useParams();
@@ -31,7 +32,7 @@ const ReportDetail = () => {
 
   const loadReport = async () => {
     try {
-      // 🔥 FIRST: trigger backend report generation
+      // FIRST: trigger backend report generation
       await reportsApi.generateReport(id!);
 
       // SECOND: load updated report data
@@ -55,8 +56,12 @@ const ReportDetail = () => {
 
       setClauses(clauseArray);
 
-      const compliant = clauseArray.filter((c) => c.status === "Compliant").length;
-      const needsReview = clauseArray.filter((c) => c.status === "Needs Review").length;
+      const compliant = clauseArray.filter(
+        (c) => c.status === "Compliant"
+      ).length;
+      const needsReview = clauseArray.filter(
+        (c) => c.status === "Needs Review"
+      ).length;
 
       setStats({
         totalClauses: clauseArray.length,
@@ -64,7 +69,6 @@ const ReportDetail = () => {
         needsReview,
         risky: 0,
       });
-
     } catch (error) {
       console.error(error);
       toast.error("Failed to load report");
@@ -73,37 +77,30 @@ const ReportDetail = () => {
     }
   };
 
-  const handleDownload = () => {
-    if (!report) return;
+  const handleDownload = async () => {
+  try {
+    const response = await downloadDocument(id!);
 
-    const content = `
-DOCUMENT REPORT
-======================
-Title: ${report.title}
-Generated: ${report.analyzed_at}
-Risk Level: ${report.risk_score}
+    // TEXT FILE blob (NOT PDF)
+    const fileBlob = new Blob([response.data], { type: "text/plain" });
 
-SUMMARY:
-${report.summary}
+    const filename = `${report.title.replace(/\s+/g, "_")}_report.txt`;
 
-CLAUSES:
-${JSON.stringify(report.clauses_found, null, 2)}
-    `;
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(fileBlob);
     const a = document.createElement("a");
-
     a.href = url;
-    a.download = `${report.title.replace(/\s+/g, "_")}_Analysis_Report.txt`;
-
-    document.body.appendChild(a);
+    a.download = filename;
     a.click();
-    document.body.removeChild(a);
+
     window.URL.revokeObjectURL(url);
 
     toast.success("Report downloaded successfully");
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to download report");
+  }
+};
+
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -161,15 +158,20 @@ ${JSON.stringify(report.clauses_found, null, 2)}
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/reports")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/reports")}
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Analysis Report</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                Analysis Report
+              </h1>
               <p className="text-muted-foreground mt-1">
                 Detailed analysis for {report.title}
               </p>
@@ -191,13 +193,23 @@ ${JSON.stringify(report.clauses_found, null, 2)}
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">{report.title}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">File: {report.file}</p>
-                  <p className="text-sm text-muted-foreground">Generated: {report.analyzed_at}</p>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    {report.title}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    File: {report.file}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Generated: {report.analyzed_at}
+                  </p>
                 </div>
               </div>
 
-              <Badge className={`${getRiskColor(report.risk_score)} text-sm px-3 py-1`}>
+              <Badge
+                className={`${getRiskColor(
+                  report.risk_score
+                )} text-sm px-3 py-1`}
+              >
                 {report.risk_score} Risk
               </Badge>
             </div>
@@ -213,19 +225,26 @@ ${JSON.stringify(report.clauses_found, null, 2)}
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
               <div className="p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold text-foreground">{stats.totalClauses}</p>
-                <p className="text-sm text-muted-foreground mt-1">Total Clauses</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats.totalClauses}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Total Clauses
+                </p>
               </div>
 
               <div className="p-4 rounded-lg bg-green-500/10">
-                <p className="text-2xl font-bold text-green-700">{stats.compliant}</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {stats.compliant}
+                </p>
                 <p className="text-sm text-green-600 mt-1">Compliant</p>
               </div>
 
               <div className="p-4 rounded-lg bg-orange-500/10">
-                <p className="text-2xl font-bold text-orange-700">{stats.needsReview}</p>
+                <p className="text-2xl font-bold text-orange-700">
+                  {stats.needsReview}
+                </p>
                 <p className="text-sm text-orange-600 mt-1">Needs Review</p>
               </div>
 
@@ -233,7 +252,6 @@ ${JSON.stringify(report.clauses_found, null, 2)}
                 <p className="text-2xl font-bold text-red-700">{stats.risky}</p>
                 <p className="text-sm text-red-600 mt-1">Risky</p>
               </div>
-
             </div>
           </CardContent>
         </Card>
@@ -262,9 +280,13 @@ ${JSON.stringify(report.clauses_found, null, 2)}
                 >
                   <div className="flex items-center gap-3">
                     {getStatusIcon(clause.status)}
-                    <span className="font-medium text-foreground">{clause.name}</span>
+                    <span className="font-medium text-foreground">
+                      {clause.name}
+                    </span>
                   </div>
-                  <Badge className={getStatusColor(clause.status)}>{clause.status}</Badge>
+                  <Badge className={getStatusColor(clause.status)}>
+                    {clause.status}
+                  </Badge>
                 </div>
               ))}
             </div>
@@ -278,11 +300,11 @@ ${JSON.stringify(report.clauses_found, null, 2)}
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground italic">
-              *You can later add AI-generated recommendations here based on clauses.*
+              *You can later add AI-generated recommendations here based on
+              clauses.*
             </p>
           </CardContent>
         </Card>
-
       </div>
     </AppLayout>
   );
