@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { authAPI } from "@/api/auth";
 import AuthLayout from "@/layouts/AuthLayout";
 import { Scale } from "lucide-react";
+import { API_BASE_URL } from "@/utils/config";
 
 const LawyerSignup = () => {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ const LawyerSignup = () => {
 
     try {
       const lawyerData = {
-        username: formData.fullName.toLowerCase().replace(/\s+/g, "_"),
+        username: formData.fullName.trim().toLowerCase().replace(/\s+/g, "_"),
         email: formData.email,
         password: formData.password,
         role: "lawyer",
@@ -103,6 +104,10 @@ const LawyerSignup = () => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_BASE_URL}auth/google/login/`;
+  };
+
   return (
     <AuthLayout>
       <Card className="w-full max-w-lg">
@@ -118,6 +123,9 @@ const LawyerSignup = () => {
           <CardDescription>
             Register as a legal professional to access lawyer features
           </CardDescription>
+          <p className="text-xs text-muted-foreground">
+            Only licensed legal professionals should register on this page.
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -252,6 +260,16 @@ const LawyerSignup = () => {
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Register as Lawyer"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2 mt-3"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              <img src="/google-icon.svg" className="w-4 h-4" alt="Google" />
+              Continue with Google
             </Button>
           </form>
 
