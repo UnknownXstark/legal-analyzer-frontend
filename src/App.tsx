@@ -2,10 +2,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import LawyerSignup from "./pages/auth/LawyerSignup";
+import GoogleCallback from "./pages/auth/GoogleCallback";
+import LandingPage from "./pages/home/LandingPage";
+import PricingPage from "./pages/pricing/PricingPage";
+import ManageSubscription from "./pages/subscription/ManageSubscription";
+import UpgradeRequired from "./pages/dashboard/UpgradeRequired";
 import Dashboard from "./pages/Dashboard";
 import DocumentList from "./pages/documents/DocumentList";
 import UploadDocument from "./pages/documents/UploadDocument";
@@ -27,9 +33,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/auth/lawyer-signup" element={<LawyerSignup />} />
+          <Route path="/auth/google/callback" element={<GoogleCallback />} />
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -49,6 +59,10 @@ const App = () => (
           <Route path="/notifications/logs" element={<ProtectedRoute><ActivityLogs /></ProtectedRoute>} />
           
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          
+          {/* Subscription Routes */}
+          <Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscription /></ProtectedRoute>} />
+          <Route path="/upgrade-required" element={<ProtectedRoute><UpgradeRequired /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
