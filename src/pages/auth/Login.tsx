@@ -29,12 +29,11 @@ const Login = () => {
     
     try {
       const response = await authApi.login(formData);
-      const { user, token, refresh } = response.data;
+      const { user, access, refresh } = response.data;
       
       // Store tokens and user data
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('token', token);
-      localStorage.setItem('access_token', token);
+      localStorage.setItem('access_token', access);
       if (refresh) {
         localStorage.setItem('refresh_token', refresh);
       }
@@ -93,6 +92,15 @@ const Login = () => {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 disabled={isLoading}
               />
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign in'}

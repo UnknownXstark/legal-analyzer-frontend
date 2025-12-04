@@ -8,6 +8,9 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import LawyerSignup from "./pages/auth/LawyerSignup";
 import GoogleCallback from "./pages/auth/GoogleCallback";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import Profile from "./pages/Profile";
 import LandingPage from "./pages/home/LandingPage";
 import PricingPage from "./pages/pricing/PricingPage";
 import ManageSubscription from "./pages/subscription/ManageSubscription";
@@ -40,6 +43,8 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/auth/lawyer-signup" element={<LawyerSignup />} />
           <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -59,6 +64,7 @@ const App = () => (
           <Route path="/notifications/logs" element={<ProtectedRoute><ActivityLogs /></ProtectedRoute>} />
           
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           
           {/* Subscription Routes */}
           <Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscription /></ProtectedRoute>} />

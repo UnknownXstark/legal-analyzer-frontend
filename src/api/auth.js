@@ -1,67 +1,3 @@
-// import apiClient from './axios';
-
-// /**
-//  * Authentication API helpers for Django backend
-//  */
-// export const authAPI = {
-//   register: async (userData) => {
-//     try {
-//       const response = await apiClient.post('/api/auth/register/', userData);
-//       return { data: response.data, error: null };
-//     } catch (error) {
-//       return { 
-//         data: null, 
-//         error: error.response?.data?.message || error.message || 'Registration failed' 
-//       };
-//     }
-//   },
-
-//   login: async (credentials) => {
-//     try {
-//       const response = await apiClient.post('/api/auth/login/', credentials);
-//       return { data: response.data, error: null };
-//     } catch (error) {
-//       return { 
-//         data: null, 
-//         error: error.response?.data?.message || error.message || 'Login failed' 
-//       };
-//     }
-//   },
-
-//   getProfile: async () => {
-//     try {
-//       const response = await apiClient.get('/api/auth/profile/');
-//       return { data: response.data, error: null };
-//     } catch (error) {
-//       return { 
-//         data: null, 
-//         error: error.response?.data?.message || error.message || 'Failed to fetch profile' 
-//       };
-//     }
-//   },
-
-//   refreshToken: async (refreshToken) => {
-//     try {
-//       const response = await apiClient.post('/api/auth/token/refresh/', {
-//         refresh: refreshToken
-//       });
-//       return { data: response.data, error: null };
-//     } catch (error) {
-//       return { 
-//         data: null, 
-//         error: error.response?.data?.message || error.message || 'Token refresh failed' 
-//       };
-//     }
-//   },
-
-//   logout: () => {
-//     localStorage.removeItem('access_token');
-//     localStorage.removeItem('refresh_token');
-//     localStorage.removeItem('user');
-//   }
-// };
-
-
 import apiClient from './axios';
 import { USE_MOCK_API } from '@/utils/config';
 
@@ -261,6 +197,54 @@ export const authAPI = {
       return {
         data: null,
         error: error.response?.data?.message || error.message || 'Google login failed',
+      };
+    }
+  },
+
+  /**
+   * Request password reset
+   * @param {string} email - User's email address
+   * @returns {Promise} - Success or error
+   */
+  requestPasswordReset: async (email) => {
+    if (USE_MOCK_API) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { data: { message: 'Reset link sent' }, error: null };
+    }
+
+    try {
+      const response = await apiClient.post('/api/auth/password/reset/', { email });
+      return { data: response.data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error.response?.data?.message || error.message || 'Failed to send reset link',
+      };
+    }
+  },
+
+  /**
+   * Confirm password reset
+   * @param {Object} data - { uidb64, token, password }
+   * @returns {Promise} - Success or error
+   */
+  confirmPasswordReset: async ({ uidb64, token, password }) => {
+    if (USE_MOCK_API) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { data: { message: 'Password reset successful' }, error: null };
+    }
+
+    try {
+      const response = await apiClient.post('/api/auth/password/reset/confirm/', {
+        uidb64,
+        token,
+        password,
+      });
+      return { data: response.data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error.response?.data?.message || error.message || 'Failed to reset password',
       };
     }
   },
