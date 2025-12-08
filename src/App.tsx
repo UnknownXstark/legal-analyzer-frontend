@@ -26,6 +26,8 @@ import Notifications from "./pages/Notifications";
 import ActivityLogs from "./pages/notifications/ActivityLogs";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import AssignClient from "./pages/lawyer/AssignClient";
+import AssignmentRequests from "./pages/client/AssignmentRequests";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,12 @@ const App = () => (
           {/* Subscription Routes */}
           <Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscription /></ProtectedRoute>} />
           <Route path="/upgrade-required" element={<ProtectedRoute><UpgradeRequired /></ProtectedRoute>} />
+          
+          {/* Lawyer Routes */}
+          <Route path="/lawyer/assign-client" element={<ProtectedRoute><AssignClient /></ProtectedRoute>} />
+          
+          {/* Client Routes */}
+          <Route path="/client/assignment-requests" element={<ProtectedRoute><AssignmentRequests /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

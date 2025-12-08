@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
     // If error is 401 and we haven't already tried to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't try to refresh if this is already a refresh request
-      if (originalRequest.url?.includes('/api/auth/token/refresh/')) {
+      if (originalRequest.url?.includes('/api/users/token/refresh/')) {
         // Refresh failed, clear tokens and redirect
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -95,7 +95,7 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/token/refresh/`, {
+        const response = await axios.post(`${API_BASE_URL}/api/users/token/refresh/`, {
           refresh: refreshToken,
         });
 

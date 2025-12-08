@@ -60,7 +60,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.post('/api/auth/register/', userData);
+      const response = await apiClient.post('/api/users/register/', userData);
       return { data: response.data, error: null };
     } catch (error) {
       return { 
@@ -99,7 +99,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.post('/api/auth/login/', credentials);
+      const response = await apiClient.post('/api/users/login/', credentials);
       return { data: response.data, error: null };
     } catch (error) {
       return { 
@@ -127,7 +127,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.get('/api/auth/profile/');
+      const response = await apiClient.get('/api/users/profile/');
       return { data: response.data, error: null };
     } catch (error) {
       return { 
@@ -144,7 +144,7 @@ export const authAPI = {
    */
   refreshToken: async (refreshToken) => {
     try {
-      const response = await apiClient.post('/api/auth/token/refresh/', {
+      const response = await apiClient.post('/api/users/token/refresh/', {
         refresh: refreshToken
       });
       return { data: response.data, error: null };
@@ -191,7 +191,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.post('/api/auth/google/', { credential });
+      const response = await apiClient.post('/api/users/google/', { credential });
       return { data: response.data, error: null };
     } catch (error) {
       return {
@@ -213,7 +213,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.post('/api/auth/password/reset/', { email });
+      const response = await apiClient.post('/api/users/password/reset/', { email });
       return { data: response.data, error: null };
     } catch (error) {
       return {
@@ -235,7 +235,7 @@ export const authAPI = {
     }
 
     try {
-      const response = await apiClient.post('/api/auth/password/reset/confirm/', {
+      const response = await apiClient.post('/api/users/password/reset/confirm/', {
         uidb64,
         token,
         password,

@@ -8,7 +8,12 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Users,
+  Scale,
+  UserPlus,
+  Inbox,
 } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -23,17 +28,50 @@ const Sidebar = ({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
 }: SidebarProps) => {
-  const navItems = [
+  const user = getCurrentUser();
+  const userRole = user?.role || "individual";
+
+  // Base nav items for all users
+  const baseNavItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "Documents", path: "/documents", icon: FileText },
     { name: "Reports", path: "/reports", icon: BarChart3 },
     { name: "Notifications", path: "/notifications", icon: Bell },
-    { name: "Settings", path: "/settings", icon: Settings },
   ];
+
+  // Role-specific nav items
+  const lawyerNavItems = [
+    {
+      name: "Client Management",
+      path: "/lawyer/assign-client",
+      icon: UserPlus,
+    },
+  ];
+
+  const clientNavItems = [
+    { name: "My Lawyer", path: "/client/assignment-requests", icon: Scale },
+  ];
+
+  const adminNavItems = [{ name: "Users", path: "/admin/users", icon: Users }];
+
+  // Build nav items based on role
+  let navItems = [...baseNavItems];
+
+  if (userRole === "lawyer") {
+    navItems = [...baseNavItems, ...lawyerNavItems];
+  } else if (userRole === "individual") {
+    navItems = [...baseNavItems, ...clientNavItems];
+  } else if (userRole === "admin") {
+    navItems = [...baseNavItems, ...adminNavItems];
+  }
+
+  // Add settings at the end
+  navItems.push({ name: "Settings", path: "/settings", icon: Settings });
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     window.location.href = "/login";
   };
 
