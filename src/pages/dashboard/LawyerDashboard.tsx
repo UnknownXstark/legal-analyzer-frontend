@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, FileText, AlertCircle, Clock } from "lucide-react";
 import { lawyerDashboardApi } from "@/api/lawyerDashboard";
 import { toast } from "sonner";
+import SharedDocumentsSection from "@/components/SharedDocumentsSection";
 
 interface LawyerData {
   stats: {
@@ -215,6 +216,9 @@ const LawyerDashboard = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Shared Documents Section */}
+      <SharedDocumentsSection variant="lawyer" />
     </div>
   );
 };

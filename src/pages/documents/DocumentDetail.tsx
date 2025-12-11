@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, FileText, Loader2, Brain, AlertTriangle, CheckCircle2, Info, MessageSquare, History } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, Brain, AlertTriangle, CheckCircle2, Info, MessageSquare, History, Share2 } from 'lucide-react';
 import { useDocument } from '@/hooks/useDocuments';
 import { useDocuments } from '@/hooks/useDocuments';
 import AppLayout from '@/layouts/AppLayout';
@@ -13,6 +13,9 @@ import CommentSidebar from '@/components/collaboration/CommentSidebar';
 import VersionList from '@/components/collaboration/VersionList';
 import DocumentHighlights from '@/components/collaboration/DocumentHighlights';
 import UpgradeLimitModal from '@/components/UpgradeLimitModal';
+import ShareDocumentModal from '@/components/ShareDocumentModal';
+import { getCurrentUser } from '@/lib/auth';
+import { formatDate } from '@/utils/formatDate';
 
 const DocumentDetail = () => {
   const { id } = useParams();
@@ -21,6 +24,9 @@ const DocumentDetail = () => {
   const { analyzeDocumentAsync, isAnalyzing, generateReport, isGeneratingReport } = useDocuments();
   const [isCommentSidebarOpen, setIsCommentSidebarOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const user = getCurrentUser();
+  const isLawyer = user?.role === 'lawyer';
 
   const handleAnalyze = async () => {
     if (id) {
@@ -113,15 +119,28 @@ The termination of this Agreement shall not relieve either party of their obliga
                 Back
               </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsCommentSidebarOpen(!isCommentSidebarOpen)}
-              className="gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Comments
-            </Button>
+            <div className="flex items-center gap-2">
+              {isLawyer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShareModal(true)}
+                  className="gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCommentSidebarOpen(!isCommentSidebarOpen)}
+                className="gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Comments
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-start justify-between">
@@ -132,7 +151,7 @@ The termination of this Agreement shall not relieve either party of their obliga
               <div>
                 <h1 className="text-3xl font-bold text-foreground">{document.title}</h1>
                 <p className="text-muted-foreground mt-1">
-                  {document.file?.split('/').pop() || 'Document'} • Uploaded {document.uploaded_at}
+                  {document.file?.split('/').pop() || 'Document'} • Uploaded {formatDate(document.uploaded_at)}
                 </p>
               </div>
             </div>
@@ -169,7 +188,7 @@ The termination of this Agreement shall not relieve either party of their obliga
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Upload Date</p>
-                      <p className="text-foreground mt-1">{document.uploaded_at}</p>
+                      <p className="text-foreground mt-1">{formatDate(document.uploaded_at)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Status</p>
@@ -178,7 +197,7 @@ The termination of this Agreement shall not relieve either party of their obliga
                     {document.analyzed_at && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Analyzed</p>
-                        <p className="text-foreground mt-1">{document.analyzed_at}</p>
+                        <p className="text-foreground mt-1">{formatDate(document.analyzed_at)}</p>
                       </div>
                     )}
                   </div>
@@ -191,7 +210,7 @@ The termination of this Agreement shall not relieve either party of their obliga
                   <CardDescription>Document text with highlighted clauses and entities</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DocumentHighlights content={sampleContent} />
+                  <DocumentHighlights content={document.extracted_text || ''} />
                 </CardContent>
               </Card>
 
@@ -241,7 +260,7 @@ The termination of this Agreement shall not relieve either party of their obliga
                             {document.risk_score || 'Unknown'} Risk Level Detected
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Analyzed on {document.analyzed_at}
+                            Analyzed on {formatDate(document.analyzed_at)}
                           </p>
                         </div>
                       </div>
@@ -338,6 +357,16 @@ The termination of this Agreement shall not relieve either party of their obliga
         open={showUpgradeModal} 
         onOpenChange={setShowUpgradeModal} 
       />
+
+      {/* Share Document Modal for lawyers */}
+      {id && document && (
+        <ShareDocumentModal
+          open={showShareModal}
+          onOpenChange={setShowShareModal}
+          documentId={id}
+          documentTitle={document.title}
+        />
+      )}
     </AppLayout>
   );
 };

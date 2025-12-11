@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useDocument, useDocuments } from '@/hooks/useDocuments';
 import UpgradeLimitModal from '@/components/UpgradeLimitModal';
+import { formatDate } from '@/utils/formatDate';
 
 interface Entity {
   text: string;
@@ -117,7 +118,7 @@ const DocumentAnalysis = () => {
   const clauses = document.clauses_found || {};
   const clauseEntries = Object.entries(clauses);
   const foundCount = clauseEntries.filter(([_, found]) => found).length;
-  const entities: Entity[] = (document as any).entities || [];
+  const entities: Entity[] = document.entities || [];
 
   // Show analyze prompt if not analyzed
   if (!isAnalyzed) {
@@ -136,7 +137,7 @@ const DocumentAnalysis = () => {
               </h1>
               <p className="text-muted-foreground flex items-center gap-2 mt-1">
                 <Calendar className="w-4 h-4" />
-                Uploaded: {document.uploaded_at}
+                Uploaded: {formatDate(document.uploaded_at)}
               </p>
             </div>
           </div>
@@ -190,7 +191,7 @@ const DocumentAnalysis = () => {
               </h1>
               <p className="text-muted-foreground flex items-center gap-2 mt-1">
                 <Calendar className="w-4 h-4" />
-                Uploaded: {document.uploaded_at}
+                Uploaded: {formatDate(document.uploaded_at)}
               </p>
             </div>
           </div>
@@ -222,7 +223,7 @@ const DocumentAnalysis = () => {
                 <CardContent>
                   <p className="text-foreground leading-relaxed">{document.summary}</p>
                   <p className="text-xs text-muted-foreground mt-4">
-                    Analyzed: {document.analyzed_at}
+                    Analyzed: {formatDate(document.analyzed_at)}
                   </p>
                 </CardContent>
               </CollapsibleContent>

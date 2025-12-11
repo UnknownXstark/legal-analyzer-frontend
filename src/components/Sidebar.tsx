@@ -12,6 +12,7 @@ import {
   Scale,
   UserPlus,
   Inbox,
+  Share2,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -46,10 +47,20 @@ const Sidebar = ({
       path: "/lawyer/assign-client",
       icon: UserPlus,
     },
+    {
+      name: "Shared Documents",
+      path: "/lawyer/shared-documents",
+      icon: Share2,
+    },
   ];
 
   const clientNavItems = [
     { name: "My Lawyer", path: "/client/assignment-requests", icon: Scale },
+    {
+      name: "Shared Documents",
+      path: "/client/shared-documents",
+      icon: Share2,
+    },
   ];
 
   const adminNavItems = [{ name: "Users", path: "/admin/users", icon: Users }];

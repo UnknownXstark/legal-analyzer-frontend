@@ -27,7 +27,9 @@ import ActivityLogs from "./pages/notifications/ActivityLogs";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AssignClient from "./pages/lawyer/AssignClient";
+import SharedDocumentsLawyer from "./pages/lawyer/SharedDocuments";
 import AssignmentRequests from "./pages/client/AssignmentRequests";
+import SharedDocumentsClient from "./pages/client/SharedDocuments";
 
 const queryClient = new QueryClient();
 
@@ -74,9 +76,11 @@ const App = () => (
           
           {/* Lawyer Routes */}
           <Route path="/lawyer/assign-client" element={<ProtectedRoute><AssignClient /></ProtectedRoute>} />
+          <Route path="/lawyer/shared-documents" element={<ProtectedRoute><SharedDocumentsLawyer /></ProtectedRoute>} />
           
           {/* Client Routes */}
           <Route path="/client/assignment-requests" element={<ProtectedRoute><AssignmentRequests /></ProtectedRoute>} />
+          <Route path="/client/shared-documents" element={<ProtectedRoute><SharedDocumentsClient /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

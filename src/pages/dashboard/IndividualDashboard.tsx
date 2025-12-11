@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FileText, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import SharedDocumentsSection from "@/components/SharedDocumentsSection";
 
 interface IndividualDashboardProps {
   data: any;
@@ -122,6 +123,9 @@ const IndividualDashboard = ({ data, userName }: IndividualDashboardProps) => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Shared Documents Section */}
+      <SharedDocumentsSection variant="client" />
     </div>
   );
 };

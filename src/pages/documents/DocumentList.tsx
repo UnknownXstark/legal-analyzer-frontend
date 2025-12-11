@@ -17,8 +17,7 @@ import {
 import { Upload, FileText, Eye, Trash2, Search } from "lucide-react";
 import { useDocuments } from "@/hooks/useDocuments";
 import AppLayout from "@/layouts/AppLayout";
-import { documentsAPI } from "@/api/documents";
-import { toast } from "sonner";
+import { formatDate } from "@/utils/formatDate";
 
 const DocumentList = () => {
   const navigate = useNavigate();
@@ -32,7 +31,9 @@ const DocumentList = () => {
       const filtered = documents.filter(
         (doc) =>
           doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doc.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+          (doc.file?.split("/").pop() || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
       setFilteredDocs(filtered);
     } else {
@@ -40,26 +41,9 @@ const DocumentList = () => {
     }
   }, [searchTerm, documents]);
 
-  const handleDelete = async () => {
-    if (!deleteId) return;
-
-    try {
-      const { data, error } = await documentsAPI.deleteDocument(deleteId);
-
-      if (error) {
-        toast.error(error);
-      } else {
-        toast.success("Document deleted successfully");
-
-        // Remove deleted document from UI
-        const updated = documents.filter((doc) => doc.id !== deleteId);
-        setFilteredDocs(updated);
-      }
-    } catch (err) {
-      toast.error("Failed to delete document");
-    } finally {
-      setDeleteId(null);
-    }
+  const handleDelete = () => {
+    // Delete functionality can be added here if needed
+    setDeleteId(null);
   };
 
   const getRiskColor = (risk: string) => {
@@ -150,13 +134,14 @@ const DocumentList = () => {
                           {doc.title}
                         </p>
                         <p className="text-sm text-muted-foreground truncate">
-                          {doc.fileName} • {doc.uploadedAt}
+                          {doc.file?.split("/").pop() || "Document"} •{" "}
+                          {formatDate(doc.uploaded_at)}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-                      <Badge className={getRiskColor(doc.risk)}>
-                        {doc.risk} risk
+                      <Badge className={getRiskColor(doc.risk_score || "")}>
+                        {doc.risk_score || "Pending"} risk
                       </Badge>
                       <div className="flex gap-2">
                         <Button
@@ -189,9 +174,7 @@ const DocumentList = () => {
 
       <AlertDialog
         open={deleteId !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteId(null);
-        }}
+        onOpenChange={() => setDeleteId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
