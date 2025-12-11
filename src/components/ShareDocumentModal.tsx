@@ -41,17 +41,22 @@ const ShareDocumentModal = ({
   useEffect(() => {
     if (open) {
       loadClients();
+    } else {
+      // reset selection when modal closes
+      setSelectedClient('');
     }
   }, [open]);
 
   const loadClients = async () => {
     setIsLoading(true);
     const { data, error } = await lawyerClientAPI.getLawyerClients();
+
     if (error) {
       toast.error(error);
     } else if (data) {
       setClients(data);
     }
+
     setIsLoading(false);
   };
 
@@ -62,10 +67,12 @@ const ShareDocumentModal = ({
     }
 
     setIsSharing(true);
-    const { error } = await documentSharingAPI.shareDocument(
-      parseInt(documentId),
-      parseInt(selectedClient)
-    );
+
+    // Call the documentSharing API with two args: documentId, clientId
+    const docIdNum = parseInt(documentId, 10);
+    const clientIdNum = parseInt(selectedClient, 10);
+
+    const { data, error } = await documentSharingAPI.shareDocument(docIdNum, clientIdNum);
 
     if (error) {
       toast.error(error);
@@ -73,7 +80,9 @@ const ShareDocumentModal = ({
       toast.success('Document shared successfully');
       onOpenChange(false);
       setSelectedClient('');
+      // optionally update local state / UI — omitted here
     }
+
     setIsSharing(false);
   };
 
@@ -109,7 +118,7 @@ const ShareDocumentModal = ({
                   <SelectValue placeholder="Choose a client" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border z-50">
-                {clients.map((client) => (
+                  {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
                       {client.username} ({client.email})
                     </SelectItem>
@@ -121,11 +130,7 @@ const ShareDocumentModal = ({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSharing}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSharing}>
             Cancel
           </Button>
           <Button
