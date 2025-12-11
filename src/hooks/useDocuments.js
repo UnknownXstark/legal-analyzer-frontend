@@ -37,17 +37,24 @@ export const useDocuments = () => {
   // Analyze document mutation
   const analyzeMutation = useMutation({
     mutationFn: async (id) => {
-      const { data, error } = await documentsAPI.analyze(id);
+      const { data, error, upgradeRequired } = await documentsAPI.analyze(id);
+      if (upgradeRequired) {
+        const err = new Error('upgrade_required');
+        err.upgradeRequired = true;
+        throw err;
+      }
       if (error) throw new Error(error);
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['documents']);
       queryClient.invalidateQueries(['document', data.id]);
-      toast.success(`Analysis complete! Risk level: ${data.risk}`);
+      toast.success(`Analysis complete! Risk level: ${data.risk_score}`);
     },
     onError: (error) => {
-      toast.error(error.message || 'Analysis failed. Please try again.');
+      if (!error.upgradeRequired) {
+        toast.error(error.message || 'Analysis failed. Please try again.');
+      }
     },
   });
 
@@ -74,6 +81,8 @@ export const useDocuments = () => {
     uploadDocument: uploadMutation.mutate,
     isUploading: uploadMutation.isPending,
     analyzeDocument: analyzeMutation.mutate,
+    analyzeDocumentAsync: analyzeMutation.mutateAsync,
+    analysisError: analyzeMutation.error,
     isAnalyzing: analyzeMutation.isPending,
     generateReport: reportMutation.mutate,
     isGeneratingReport: reportMutation.isPending,

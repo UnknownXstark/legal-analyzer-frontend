@@ -12,17 +12,25 @@ import AppLayout from '@/layouts/AppLayout';
 import CommentSidebar from '@/components/collaboration/CommentSidebar';
 import VersionList from '@/components/collaboration/VersionList';
 import DocumentHighlights from '@/components/collaboration/DocumentHighlights';
+import UpgradeLimitModal from '@/components/UpgradeLimitModal';
 
 const DocumentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { document, isLoading } = useDocument(id);
-  const { analyzeDocument, isAnalyzing, generateReport, isGeneratingReport } = useDocuments();
+  const { analyzeDocumentAsync, isAnalyzing, generateReport, isGeneratingReport } = useDocuments();
   const [isCommentSidebarOpen, setIsCommentSidebarOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (id) {
-      analyzeDocument(id);
+      try {
+        await analyzeDocumentAsync(id);
+      } catch (error) {
+        if (error.upgradeRequired) {
+          setShowUpgradeModal(true);
+        }
+      }
     }
   };
 
@@ -124,17 +132,17 @@ The termination of this Agreement shall not relieve either party of their obliga
               <div>
                 <h1 className="text-3xl font-bold text-foreground">{document.title}</h1>
                 <p className="text-muted-foreground mt-1">
-                  {document.fileName} • Uploaded {document.uploadedAt}
+                  {document.file?.split('/').pop() || 'Document'} • Uploaded {document.uploaded_at}
                 </p>
               </div>
             </div>
-            <Badge className={getRiskColor(document.risk)} variant="outline">
-              <span className="flex items-center gap-2">
-                {getRiskIcon(document.risk)}
-                {document.risk} Risk
-              </span>
-            </Badge>
-          </div>
+          <Badge className={getRiskColor(document.risk_score || '')} variant="outline">
+            <span className="flex items-center gap-2">
+              {getRiskIcon(document.risk_score || '')}
+              {document.risk_score || 'Not Analyzed'} Risk
+            </span>
+          </Badge>
+        </div>
 
           <Tabs defaultValue="content" className="w-full">
             <TabsList>
@@ -157,20 +165,20 @@ The termination of this Agreement shall not relieve either party of their obliga
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">File Name</p>
-                      <p className="text-foreground mt-1">{document.fileName}</p>
+                      <p className="text-foreground mt-1">{document.file?.split('/').pop() || 'Document'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Upload Date</p>
-                      <p className="text-foreground mt-1">{document.uploadedAt}</p>
+                      <p className="text-foreground mt-1">{document.uploaded_at}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Status</p>
                       <p className="text-foreground mt-1 capitalize">{document.status}</p>
                     </div>
-                    {document.analyzedAt && (
+                    {document.analyzed_at && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Analyzed</p>
-                        <p className="text-foreground mt-1">{document.analyzedAt}</p>
+                        <p className="text-foreground mt-1">{document.analyzed_at}</p>
                       </div>
                     )}
                   </div>
@@ -225,15 +233,15 @@ The termination of this Agreement shall not relieve either party of their obliga
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-lg ${getRiskColor(document.risk)} flex items-center justify-center`}>
-                          {getRiskIcon(document.risk)}
+                        <div className={`w-12 h-12 rounded-lg ${getRiskColor(document.risk_score || '')} flex items-center justify-center`}>
+                          {getRiskIcon(document.risk_score || '')}
                         </div>
                         <div>
                           <p className="font-semibold text-foreground">
-                            {document.risk} Risk Level Detected
+                            {document.risk_score || 'Unknown'} Risk Level Detected
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Analyzed on {document.analyzedAt}
+                            Analyzed on {document.analyzed_at}
                           </p>
                         </div>
                       </div>
@@ -324,6 +332,12 @@ The termination of this Agreement shall not relieve either party of their obliga
           </div>
         )}
       </div>
+
+      {/* Upgrade Modal for 402 errors */}
+      <UpgradeLimitModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+      />
     </AppLayout>
   );
 };

@@ -1,24 +1,18 @@
-import apiClient from "@/api/axios";
+import apiClient from '@/api/axios';
 
 export const paymentsAPI = {
   /**
    * Create a Stripe checkout session for subscription
-   * @param plan - 'free' | 'premium'
+   * @param plan - 'free' | 'premium' | 'business'
    */
   createCheckoutSession: async (plan: string) => {
     try {
-      const response = await apiClient.post(
-        "/api/subscriptions/create-checkout/",
-        { plan }
-      );
+      const response = await apiClient.post('/api/payments/create-checkout-session/', { plan });
       return { data: response.data, error: null };
     } catch (error: any) {
       return {
         data: null,
-        error:
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to create checkout session",
+        error: error.response?.data?.message || error.message || 'Failed to create checkout session',
       };
     }
   },
@@ -28,17 +22,17 @@ export const paymentsAPI = {
    */
   getSubscriptionStatus: async () => {
     try {
-      const response = await apiClient.get("/api/subscriptions/status/");
+      const response = await apiClient.get('/api/payments/subscription-status/');
       return { data: response.data, error: null };
     } catch (error: any) {
       // Return default free plan if endpoint fails
       return {
         data: {
-          plan: "free",
-          status: "active",
+          plan: 'free',
+          status: 'active',
           usage: {
-            analyses_used: 0,
-            analyses_limit: 3,
+            analysis_count: 0,
+            limit: 3,
           },
         },
         error: null,
@@ -51,15 +45,12 @@ export const paymentsAPI = {
    */
   manageBillingPortal: async () => {
     try {
-      const response = await apiClient.post("/api/subscriptions/portal/");
+      const response = await apiClient.post('/api/payments/manage-billing-portal/');
       return { data: response.data, error: null };
     } catch (error: any) {
       return {
         data: null,
-        error:
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to open billing portal",
+        error: error.response?.data?.message || error.message || 'Failed to open billing portal',
       };
     }
   },
